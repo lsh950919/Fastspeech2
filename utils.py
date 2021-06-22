@@ -1,3 +1,8 @@
+import os
+import shutil
+import librosa
+import hparams as hp
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -6,15 +11,97 @@ import matplotlib
 
 matplotlib.use("Agg")
 
+from jamo import h2j
+from g2pk import G2p
+from glob import glob
+from tqdm import tqdm
+from pydub import AudioSegment
+
 from matplotlib import pyplot as plt
 from scipy.io import wavfile
 from vocoder.vocgan_generator import Generator
-import hparams as hp
-import os
-import text
+
+# MFA utils
+
+def backup_meta(meta_path):
+    dirname = os.path.dirname(meta_path)
+    shutil.copy(meta_path, os.path.join(dirname, 'meta_backup.txt'))
+    print(f'Metadata file is backed up at {os.path.join(dirname, "meta_backup.txt")}')
+
+def _jamo_split(text, g2p):
+    return h2j(g2p(text)).split()
+
+def create_lab(audio_dir, meta_path):
+    print(meta_path)
+    try:
+        m = open(meta_path, 'r', encoding = 'cp949').readlines()
+    except:
+        m = open(meta_path, 'r').readlines()
+    print('Creating lab files:\n')
+    for line in tqdm(m):
+        basename, text = line.split('|')[0], line.split('|')[1]
+        lab_path = os.path.join(audio_dir, basename.replace('.wav', '.lab'))
+        # print(lab_path)
+
+        with open(lab_path, 'w') as lab:
+            lab.write(text)
+
+def create_dictionary(meta_path, position):
+    p_dict = {}
+    g2p = G2p()
+    with open(meta_path, 'r') as m:
+        print('Creating dictionary:\n')
+        for line in tqdm(m.readlines()):
+            content = line.rstrip()
+            content = content.split('|')[position]
+            word_list = content.split()
+
+            for word in word_list:
+                if word not in p_dict.keys():
+                    p_dict[word] = ' '.join(_jamo_split(word, g2p)[0])
+
+    return p_dict
+
+def create_lexicon(out_dir, p_dict):
+    with open(os.path.join(out_dir, 'lexicon.txt'), 'w') as lex:
+        for k, v in p_dict.items():
+            lex.write(f'{k}\t{v}\n')
+    print('Lexicon file created at {}'.format(os.path.join(out_dir, 'lexicon.txt')))
+    return os.path.join(out_dir, 'lexicon.txt')
+
+def filter_short(meta_path, audio_dir):
+    meta = open(meta_path, 'r').readlines()
+    # new_meta = os.path.join(os.path.dirname(meta_path), 'meta2.txt')
+
+    print('Filtering out short audio files...\n')
+    content = []
+    for line in tqdm(meta):
+        path = os.path.join(audio_dir, line.split('|')[0])
+        audio = AudioSegment.from_wav(path)
+        # keep audio only if duration is longer than 2 seconds
+        if len(audio)/1000 >= 2:
+            content.append(line)
+    with open(meta_path, 'w') as f:
+        f.write(''.join(content))
+        
+def resample(audio_dir):
+    resampled_audio = os.path.join(hp.data_path, 'resampled')
+    print('Resampling audio files to 22050 Hz')
+    for file in tqdm(glob(os.path.join(audio_dir, '*.wav'))):
+        old_sr = librosa.get_samplerate(file)
+        audio, sr = librosa.load(file, sr = old_sr)
+        resampled = librosa.resample(audio, old_sr, 22050)
+        sf.write(resampled_audio, resampled, 22050, format = "WAV", endian='LITTLE', subtype='PCM_16')
+    
+    os.rename(hp.audio_path, os.path.join(hp.data_path, 'original'))
+    print(f'Original files moved to {os.path.join(hp.data_path, "original")}')
+    os.rename(resampled_audio, hp.audio_path)
+    print(f'Resampled audio in {hp.audio_path}')
+
+
+# Model utils
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 
 def get_alignment(tier):
     sil_phones = ['sil', 'sp', 'spn']
