@@ -1,35 +1,59 @@
+**이 repository는 [Fastspeech2-Korean](https://github.com/HGU-DLLAB/Korean-FastSpeech2-Pytorch)에서 가져와 변경 됐음을 알립니다.**
+
+**The source of this repository is [Fastspeech2-Korean](https://github.com/HGU-DLLAB/Korean-FastSpeech2-Pytorch), which I have cloned and modified contents from.**
+
 # Korean FastSpeech 2 - Pytorch Implementation
 
 ![](./assets/model.png)
+
+
 # Introduction
 
 최근 딥러닝 기반 음성합성 기술이 발전하며, 자기회귀적 모델의 느린 음성 합성 속도를 개선하기 위해 비자기회귀적 음성합성 모델이 제안되었습니다. FastSpeech2는 비자기회귀적 음성합성 모델들 중 하나로, Montreal Forced Aligner(M. McAuliffe et.al., 2017)에서 phoneme(text)-utterance alignment를 추출한 duration 정보를 학습하고, 이를 바탕으로 phoneme별 duration을 예측합니다. 예측된 duration을 바탕으로 phoneme-utterance alignment가 결정되고 이를 바탕으로 phoneme에 대응되는 음성이 생성됩니다. 그러므로, FastSpeech2를 학습시키기 위해서는 MFA에서 학습된 phoneme-utterance alignment 정보가 필요합니다.
 
 이 프로젝트는 Microsoft의 [**FastSpeech 2(Y. Ren et. al., 2020)**](https://arxiv.org/abs/2006.04558)를 [**Korean Single Speech dataset (이하 KSS dataset)**](https://www.kaggle.com/bryanpark/korean-single-speaker-speech-dataset)에서 동작하도록 구현한 것입니다. 본 소스코드는 ming024님의 [FastSpeech2](https://github.com/ming024/FastSpeech2) 코드를 기반으로 하였고, [Montreal Forced Aligner](https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner)를 이용하여 duration 을 추출해 구현되었습니다.
 
-본 프로젝트에서는 아래와 같은 contribution을 제공합니다.
-* kss dataset에 대해 동작하게 만든 소스코드
-* Montreal Forced Aligner로부터 추출한 kss dataset의 text-utterance duration 정보 (TextGrid)
-* kss dataset에 대해 학습한 FastSpeech2(Text-to-melspectrogram network) pretrained model
-* kss dataset에 대해 학습한 [VocGAN](https://arxiv.org/pdf/2007.15256.pdf)(Neural vocoder)의 pretrained model
+# Changes from the original [Fastspeech2-Korean](https://github.com/HGU-DLLAB/Korean-FastSpeech2-Pytorch)
 
-# Install Dependencies
+이 repo에서는 기존 project의 KSS dataset에서만 작동하던 모델을 다른 데이터에서 더 범용적으로 사용할 수 있도록 만든 버전이며, 음성파일 하나만을 가지고 완벽하게 작동하게 만드는 것이 목표였습니다.
 
-먼저 python=3.7, [pytorch](https://pytorch.org/)=1.6, [ffmpeg](https://ffmpeg.org/)와 [g2pk](https://github.com/Kyubyong/g2pK)를 설치합니다.
+* 비디오에서 음성파일을 추출
+* 긴 음성파일을 2-15초 사이 길이로 분할
+* 음성에 대한 Transcript를 Google STT API를 통해 추출
+* G2pK & python-mecab-ko 설치 instructions
+
+This repo is meant to extend the original model to be applicable to any other audio files. The main goal was to be able to implement the model with an audio file only.
+
+* Extracting audio from a video
+* Slicing a long audio file into 2-15 sec files
+* Extracting transcript from each audio using Google STT API
+* Instructions for installing G2pK & python-mecab-ko
+
+# Environment Setup
+
+**MFA official document에 따라 anaconda 가상환경에서 작업합니다.**
+
+[MFA official document](https://montreal-forced-aligner.readthedocs.io/en/latest/installation.html)에서 확인 할 수 있으며, linux 환경에서 [anaconda 설치](https://phoenixnap.com/kb/how-to-install-anaconda-ubuntu-18-04-or-20-04)가 필요합니다.
+
+위를 따라 기본 환경 setup 완료 후 mecab.sh를 사용해 [ffmpeg](https://ffmpeg.org/), [python-mecab-ko](https://pypi.org/project/python-mecab-ko/)와 [g2pk](https://github.com/Kyubyong/g2pK)를 설치합니다.
 ```
-# ffmpeg install
-sudo apt-get install ffmpeg
-
-# [WARNING] g2pk를 설치하시기 전에, g2pk github을 참조하셔서 g2pk의 dependency를 설치하시고 g2pk를 설치하시기 바랍니다.
-pip install g2pk
+./mecab.sh
 ```
+G2pk의 requirement중 하나인 python-mecab-ko가 pip install로 설치할때 에러가 나는 상황이 있어 추가했습니다.
+코드 실행 시 mecab 설치에 필요한 파일들(50MB)이 다운로드 되며, repo에 존재하는 g2pk 버전을 설치합니다.
 
-다음으로, 필요한 모듈을 pip를 이용하여 설치합니다.
-```
-pip install -r requirements.txt
-```
 
-**[WARNING] anaconda 가상환경을 사용하시는 것을 권장드립니다.**
+코드 실행에 필요한 모듈을 new_requirements.txt를 사용해 설치합니다.
+```
+pip install -r new_requirements.txt
+```
+기존 requirements.txt도 존재하나, 모듈 개수가 많아 추려냈습니다.
+
+
+
+
+
+
 
 
 # Preprocessing
