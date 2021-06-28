@@ -54,7 +54,6 @@ def transcribe(audio_path, key):
         return response.results
     return response.results[0].alternatives[0].transcript
 
-# STT process only: for other util functions, utilize as needed
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-v',
