@@ -1,0 +1,13 @@
+google-api-python-client>=2.10.0
+google-cloud-speech>=0.34.0
+jamo>=0.4.1
+konlpy>=0.5.2
+librosa>=0.8.1
+matplotlib>=3.4.2
+moviepy>=1.0.3
+nltk>=3.6.2
+pydub>=0.25.1
+pyworld>=0.3.0
+tensorboard>=2.5.0
+torch>=1.6.0
+tgt>=1.4.4
