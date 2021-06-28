@@ -2,6 +2,7 @@ import os
 import shutil
 import librosa
 import hparams as hp
+import soundfile as sf
 
 import torch
 import torch.nn as nn
@@ -25,6 +26,9 @@ from vocoder.vocgan_generator import Generator
 
 def backup_meta(meta_path):
     dirname = os.path.dirname(meta_path)
+    if os.path.exists(os.path.join(dirname, 'meta_backup.txt')):
+        print('meta_backup.txt already exists')
+        return None
     shutil.copy(meta_path, os.path.join(dirname, 'meta_backup.txt'))
     print(f'Metadata file is backed up at {os.path.join(dirname, "meta_backup.txt")}')
 
@@ -83,20 +87,30 @@ def filter_short(meta_path, audio_dir):
             content.append(line)
     with open(meta_path, 'w') as f:
         f.write(''.join(content))
-        
-def resample(audio_dir):
+
+    file_list = [line.split('|')[0] for line in open(meta_path, 'r').readlines()]
+    for path in os.listdir(audio_dir):
+        if path not in file_list:
+            os.remove(os.path.join(audio_dir, path))
+    
+def resample():
+    if os.path.exists(os.path.join(hp.data_path, 'original')):
+        return None
+
     resampled_audio = os.path.join(hp.data_path, 'resampled')
+    os.makedirs(resampled_audio)
     print('Resampling audio files to 22050 Hz')
-    for file in tqdm(glob(os.path.join(audio_dir, '*.wav'))):
+    for file in tqdm(glob(os.path.join(hp.audio_path, '*.wav'))):
+        new = os.path.join(resampled_audio, os.path.basename(file))
         old_sr = librosa.get_samplerate(file)
         audio, sr = librosa.load(file, sr = old_sr)
         resampled = librosa.resample(audio, old_sr, 22050)
-        sf.write(resampled_audio, resampled, 22050, format = "WAV", endian='LITTLE', subtype='PCM_16')
+        sf.write(new, resampled, 22050, format = "WAV", endian='LITTLE', subtype='PCM_16')
     
     os.rename(hp.audio_path, os.path.join(hp.data_path, 'original'))
     print(f'Original files moved to {os.path.join(hp.data_path, "original")}')
     os.rename(resampled_audio, hp.audio_path)
-    print(f'Resampled audio in {hp.audio_path}')
+    print(f'Resampled audio in {hp.audio_path}\n')
 
 
 # Model utils
