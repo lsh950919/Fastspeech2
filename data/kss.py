@@ -76,8 +76,8 @@ def process_utterance(in_dir, out_dir, basename, scalers):
 
     # Convert kss data into PCM encoded wavs
     if not os.path.isfile(wav_path):
-        os.system("ffmpeg -i {} -ac 1 -ar 22050 {}".format(wav_bak_path, wav_path))    
-    tg_path = os.path.join(out_dir, textgrid_name, 'wavs-{}.TextGrid'.format(tgname)) 
+        os.system("ffmpeg -i {} -ac 1 -ar 22050 {}".format(wav_bak_path, wav_path))
+    tg_path = os.path.join(out_dir, textgrid_name, '{}-{}.TextGrid'.format(os.path.basename(hp.audio_path).replace('_', '-'), tgname)) 
     
     # Get alignments
     textgrid = tgt.io.read_textgrid(tg_path)
