@@ -15,7 +15,7 @@
 
 # Changes from the original [Fastspeech2-Korean](https://github.com/HGU-DLLAB/Korean-FastSpeech2-Pytorch)
 
-이 repo에서는 기존 project의 KSS dataset에서만 작동하던 모델을 다른 데이터에서 더 범용적으로 사용할 수 있도록 만든 버전이며, 음성파일 하나만을 가지고 완벽하게 작동하게 만드는 것이 목표였습니다.
+이 repo에서는 기존 project의 KSS dataset에서만 작동하던 모델을 다른 데이터에서 더 범용적으로 사용할 수 있도록 만든 버전이며, 남/여성 pretrained 모델을 fine-tuning하여 짧은 음성파일 하나만을 가지고 완벽하게 작동하게 만드는 것이 목표였습니다.
 
 * 비디오에서 음성파일을 추출
 * 긴 음성파일을 2-15초 사이 길이로 분할
@@ -49,14 +49,32 @@ pip install -r new_requirements.txt
 ```
 기존 requirements.txt도 존재하나, 모듈 개수가 많아 추려냈습니다.
 
-
-
-
-
-
-
-
 # Preprocessing
+
+Pretrained 모델 구축에 사용된 데이터는 총 2개로, 여성 목소리 pretrained 모델은 기존 [Korean-Single-Speech dataset](https://www.kaggle.com/bryanpark/korean-single-speaker-speech-dataset)를 사용, 남성 pretrained 모델은 [카이스트 오디오북 데이터셋](https://aihub.or.kr/opendata/kaist-audiobook)에서 남2의 음성 데이터를 사용했습니다. 카이스트 데이터는 AI HUB에서 신청을 해서 받아야 합니다.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+실험해 본 결과
 
 **(1) kss dataset download**
 * [Korean-Single-Speech dataset](https://www.kaggle.com/bryanpark/korean-single-speaker-speech-dataset): 12,853개(약 12시간)의 샘플로 구성된 한국어 여성 단일화자 발화 dataset입니다.
@@ -64,9 +82,6 @@ pip install -r new_requirements.txt
 dataset을 다운로드 하신 후, 압축을 해제하시고 ``hparams.py``에 있는 ``data_path``에 다운받은 kss dataset의 경로를 기록해주세요.
 
 **(2) phoneme-utterance sequence간 alignment 정보 download**
-
-* KSS ver.1.3. ([download](https://drive.google.com/file/d/1bq4DzgzuxY2uo6D_Ri_hd53KLnmU-mdI/view?usp=sharing))
-* KSS ver.1.4. ([download](https://drive.google.com/file/d/1LgZPfWAvPcdOpGBSncvMgv54rGIf1y-H/view?usp=sharing))
 
 FastSpeech2를 학습하기 위해서는 [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/)(MFA)에서 추출된 utterances와 phoneme sequence간의 alignment가 필요합니다. kss dataset에 대한 alignment 정보(TextGrid)는 위의 링크에서 다운로드 가능합니다. 다운 받은 ```TextGrid.zip```파일을 ``프로젝트 폴더 (Korean-FastSpeech2-Pytorch)``에 두시면 됩니다. 
 
