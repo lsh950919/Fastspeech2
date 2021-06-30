@@ -1,12 +1,13 @@
 import os
 ### kss ###
-root_dir = '~/Fastspeech2-drive'
-dataset = "sh_short"
+root_dir = './'
+dataset = "ceo"
 data_path = os.path.join(root_dir, dataset)
-audio_path = os.path.join(root_dir, dataset, 'audio')
+audio_path = os.path.join(root_dir, dataset, 'audio_files')
 meta_name = "metadata.txt"	# "transcript.v.1.4.txt" or "transcript.v.1.3.txt"
 textgrid_path = os.path.join(root_dir, dataset)
-textgrid_name = "kaist_result.zip"
+textgrid_name = "mfa_result"
+mfa_pretrained = os.path.join(root_dir, 'kss_model.zip')
 
 ### set GPU number ###
 train_visible_devices = "0,1"
@@ -62,7 +63,7 @@ test_path = "./results"
 
 # Optimizer
 batch_size = 4
-epochs = 2000
+epochs = 3000
 n_warm_up_step = 4000
 grad_clip_thresh = 1.0
 acc_steps = 1
